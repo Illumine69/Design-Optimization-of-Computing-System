@@ -1,0 +1,17 @@
+# started on Wed Aug 28 18:33:30 2024
+
+
+ Performance counter stats for './fullgc':
+
+           266,008      branch-misses                                               
+            16,254      page-faults                                                 
+         1,691,255      cache-misses                                                
+     1,062,697,451      instructions              #    2.76  insn per cycle         
+       384,832,677      cycles                                                      
+
+       0.104987013 seconds time elapsed
+
+       0.080355000 seconds user
+       0.024106000 seconds sys
+
+

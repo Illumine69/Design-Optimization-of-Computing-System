@@ -1,0 +1,151 @@
+\documentclass[11pt,paper=a4,answers]{exam}
+\usepackage{graphicx,lastpage}
+\usepackage{upgreek}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{enumerate}
+\usepackage{censor}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{tcolorbox}
+\usepackage[utf8]{inputenc}
+\usepackage{array}
+\usepackage{multirow}
+
+\censorruledepth=-.2ex
+\censorruleheight=.1ex
+\hyphenpenalty 10000
+\usepackage[paperheight=10.5in,paperwidth=8.27in,bindingoffset=0in,left=0.8in,right=1in,
+top=0.7in,bottom=1in,headsep=.5\baselineskip]{geometry}
+\flushbottom
+\usepackage[normalem]{ulem}
+\renewcommand\ULthickness{2pt}
+\setlength\ULdepth{1.5ex}
+\renewcommand{\baselinestretch}{1}
+\pagestyle{empty}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
+    pdftitle={TOPIC NAME}
+    }
+% \pagestyle{headandfoot}
+% \headrule
+
+% \runningheader{\footnotesize}
+% {TOPIC NAME}
+% \footrule
+% \footer{\footnotesize}
+% {\hrule width \textwidth height 1pt \vspace{1mm} Page \thepage\ of \numpages}
+% {}
+
+\pointsinrightmargin
+\pointsdroppedatright
+\marksnotpoints
+\marginpointname{ \points}
+\pointformat{\boldmath\themarginpoints}
+
+\begin{document}
+
+\thispagestyle{empty}
+
+\begin{tcolorbox}[colback=blue!10!white, colframe=gray!20!blue, width=\textwidth, boxrule=0.5mm, arc=0mm, auto outer arc]
+    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l r}
+        \textbf{CS60203: Design Optimization of Computing Systems} & \textit{\today} \\
+    \end{tabular*}
+    \begin{center}
+        \textbf{\LARGE Assignment 1 : Part 1} %add newline gap of twice width
+        \\ \vspace{2mm} {\Large Understanding Lua's GC}
+    \end{center}
+    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l r}
+        \textit{Instructor: Mainack Mondal} & \textit{Written-By: Sanskar Mittal} \\
+    \end{tabular*}
+\end{tcolorbox}
+
+
+\vspace{2mm}
+\noindent
+
+% Introduction
+\section{Introduction}
+Lua is a powerful, efficient, lightweight, embeddable scripting language. It supports procedural programming, object-oriented programming, functional programming, data-driven programming, and data description. Lua is dynamically typed, runs by interpreting bytecode for a register-based virtual machine, and has automatic memory management with incremental garbage collection, making it ideal for configuration, scripting, and rapid prototyping.
+
+\section{Garbage Collection}
+Lua's garbage collector (\textbf{GC}) is an automatic memory management system designed to handle the deallocation of unused memory, thereby preventing memory leaks and optimizing performance. It primarily works by tracking object references and identifying objects that are no longer accessible from the program. Once such objects are found, they are automatically reclaimed, freeing up memory for other uses. Lua uses two types of garbage collection modes: \textbf{incremental} and \textbf{generational}.
+
+\subsection{Incremental GC}
+The garbage collection process is broken down into small, incremental steps that run concurrently with the program’s execution, minimizing noticeable pauses. It operates in two phases: \textbf{mark}, and \textbf{sweep}. 
+
+\begin{enumerate}
+    \item \textbf{Mark Phase}
+    \begin{itemize}
+        \item The GC begins by identifying and marking all \textbf{live} objects directly reachable from the \textbf{root set} (e.g., global variables, stack).
+        \item Initially, objects are marked as "\textbf{white}" (unmarked and potentially garbage) and "\textbf{gray}" (reachable but requiring further inspection).
+        \item During traversal, the GC moves objects from "gray" to "black," marking all objects referenced by the current gray objects, ensuring all reachable objects are identified.
+        \item The "\textbf{barrier}" mechanism tracks and manages changes to objects, ensuring objects created or modified during the GC cycle are properly processed.
+    \end{itemize}
+    \newpage
+    \item \textbf{Sweep Phase}
+    \begin{itemize}
+        \item After all reachable objects are marked, the GC \textbf{sweeps} through memory, reclaiming space occupied by objects that remain "white" (unmarked and no longer in use).
+        \item This phase is executed incrementally, with memory freed in portions, distributing the workload over time.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Generational GC}
+Lua's generational garbage collection is an optimization of its memory management system that improves efficiency by categorizing objects based on their \textbf{lifespan}. This approach is rooted in the observation that most objects are either very \textbf{short-lived} or \textbf{long-lived}, with relatively few objects falling in between. By exploiting this pattern, Lua's generational GC minimizes the overhead associated with garbage collection, particularly for long-lived objects.
+\\ \\
+Objects are divided into \textbf{generations}, typically categorized as young and old, based on how long they have been in memory. It is observed that most objects \textbf{die young}, meaning they become unreachable soon after allocation. Lua's GC separates objects into two generations: the \textbf{young generation}, where newly allocated objects reside, and the \textbf{old generation}, where objects that survive multiple GC cycles are promoted.
+
+\begin{enumerate}
+    \item \textbf{Young Generation Collection}
+    \begin{itemize}
+        \item The GC frequently collects the young generation because most objects in this generation are \textbf{short-lived}.
+        \item During this phase, the GC identifies and reclaims memory from objects that have become unreachable shortly after their creation.
+        \item Objects that survive several collection cycles in the young generation are \textbf{promoted} to the old generation, as they are likely to have a longer lifespan.
+    \end{itemize}
+    \item \textbf{Old Generation Collection}
+    \begin{itemize}
+        \item The old generation is collected \textbf{less frequently}, as it contains objects that have already survived several young generation collections and are presumed to be long-lived.
+        \item Collecting the old generation involves more extensive processing since these objects are less likely to be garbage. However, because the collection is infrequent, the overall impact on performance is minimized.
+    \end{itemize}
+\end{enumerate}
+
+\noindent
+Until Version \textbf{5.0}, Lua used basic \textbf{mark \& sweep} collector or \textbf{fullGC}. It is a complete garbage collection cycle where all objects in memory are examined and processed, regardless of their generation or state.
+
+\vspace{1mm}
+\noindent 
+Unlike incremental or generational GC, which target specific subsets of objects, a full GC cycle is \textbf{exhaustive}. It starts by marking all reachable objects from the root set and propagates this marking through all references, ensuring that no live objects are mistakenly collected. Following the marking phase, the GC then sweeps through all objects, reclaiming memory occupied by those that are unmarked (i.e., unreachable).
+
+\vspace{1mm}
+\noindent 
+A full GC is more \textbf{resource-intensive} and can cause noticeable pauses in program execution, but it is necessary to thoroughly clean up memory, particularly in situations where incremental or generational GC might miss long-lived objects that have become unreachable.
+
+\section{Code Analysis}
+Lua's GC is implemented in C, and the main components are located in the '\href{https://www.lua.org/source/5.4/lgc.c.html}{lgc.c}' file of the Lua source code.
+
+\subsection{States}
+Lua's GC operates through various states defined in the source code. Key states include:
+\begin{itemize}
+    \item \verb|GCSpause:| The GC is idle, waiting for the next cycle to begin.
+    \item \verb|GCSpropagate:| The GC is marking objects.
+    \item \verb|LUAI_GCPAUSE:| Wait memory to double before starting new cycle
+\end{itemize}
+
+\subsection{Functions}
+\begin{itemize}
+    \item \verb|luaC_step():| This function progresses the GC state machine, performing small steps of work based on the current GC state. In the case of incremental GC, this function ensures that the collection process is distributed over time, preventing long pauses.
+    \item \verb|reallymarkobject():| This is responsible for marking live objects during the mark phase.
+    \item \verb|luaC_barrier_(Lua_State *L, GCObject *o, GCObject *v):| This function ensures that when a "black" object (\verb|o|) references a "white" object (\verb|v|), the garbage collector maintains its invariants by marking \verb|v| and handling it correctly according to the current GC mode (incremental or generational).
+    \begin{enumerate}
+        \item In generational GC mode, if the black object \verb|o| is old, the white object  \verb|v| must be promoted through stages (\verb|G_OLD0|, \verb|G_OLD1| and \verb|OLD|) to ensure that all objects it references will also become old.
+        \item In incremental GC mode, the function may clear the black object's mark (turning it white) to avoid repeated barrier checks, thereby optimizing the sweeping process. 
+    \end{enumerate}
+    \item \verb|lu_mem_propagatemark():| This function traverses one gray object, turning it to black.
+    \item \verb|sweeplist():| sweep across a list of \verb|GCObjects| erasing dead objects, where a dead object is one marked with the old (non current) white. It also changes all non-dead objects back to white, preparing for next collection cycle.    
+    \item \verb|luaC_freeallobjects():| This function calls all finalizers of the objects in the given Lua state, and then free all objects, except for the main thread.
+    \item \verb|luaC_fullgc(lua_State *L, int isemergency):| This function performs a full GC cycle. If \verb|isemergency|, set a flag to avoid some operations which could change the interpreter state in some unexpected ways (running finalizers and shrinking some structures).
+\end{itemize}
+
+\end{document}

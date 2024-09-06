@@ -1,0 +1,165 @@
+\documentclass[11pt,paper=a4,answers]{exam}
+\usepackage{graphicx,lastpage}
+\usepackage{upgreek}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{enumerate}
+\usepackage{censor}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{tcolorbox}
+\usepackage[utf8]{inputenc}
+\usepackage{array}
+\usepackage{multirow}
+
+\censorruledepth=-.2ex
+\censorruleheight=.1ex
+\hyphenpenalty 10000
+\usepackage[paperheight=10.5in,paperwidth=8.27in,bindingoffset=0in,left=0.8in,right=1in,
+top=0.7in,bottom=1in,headsep=.5\baselineskip]{geometry}
+\flushbottom
+\usepackage[normalem]{ulem}
+\renewcommand\ULthickness{2pt}
+\setlength\ULdepth{1.5ex}
+\renewcommand{\baselinestretch}{1}
+\pagestyle{empty}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
+    pdftitle={TOPIC NAME}
+    }
+% \pagestyle{headandfoot}
+% \headrule
+
+% \runningheader{\footnotesize}
+% {TOPIC NAME}
+% \footrule
+% \footer{\footnotesize}
+% {\hrule width \textwidth height 1pt \vspace{1mm} Page \thepage\ of \numpages}
+% {}
+
+\pointsinrightmargin
+\pointsdroppedatright
+\marksnotpoints
+\marginpointname{ \points}
+\pointformat{\boldmath\themarginpoints}
+
+\begin{document}
+
+\thispagestyle{empty}
+
+\begin{tcolorbox}[colback=blue!10!white, colframe=gray!20!blue, width=\textwidth, boxrule=0.5mm, arc=0mm, auto outer arc]
+    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l r}
+        \textbf{CS60203: Design Optimization of Computing Systems} & \textit{\today} \\
+    \end{tabular*}
+    \begin{center}
+        \textbf{\LARGE Assignment 1 : Part 2}
+        \\ \vspace{2mm} {\Large Benchmarking Lua's GC}
+    \end{center}
+    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l r}
+        \textit{Instructor: Mainack Mondal} & \textit{Written-By: Sanskar Mittal} \\
+    \end{tabular*}
+\end{tcolorbox}
+
+
+\vspace{2mm}
+\noindent
+
+\section*{\underline{Part 1}}
+\begin{table}[h!]
+    \begin{center}
+        \begin{tabular}{|c|c|c|}
+            \hline
+            \textbf{Full GC} & \textbf{Incremental GC} & \textbf{Generational GC} \\
+            \hline
+            22.71 & 14.93 & 18.87 \\
+            \hline
+        \end{tabular}
+        \caption{Percentage(\%) of instructions consumed by different GC configurations}
+        \text{Here, \textcolor{blue}{n} = \textcolor{red}{100} and \textcolor{blue}{m} = \textcolor{red}{1000}}
+        \label{table:1}
+    \end{center}
+\end{table}
+
+\noindent
+\begin{enumerate}
+    \item \textbf{Full GC} : The relatively high percentage (\textbf{22.71\%}) indicates that this process is more instruction-intensive. Full GC typically pauses the entire application, making it more expensive in terms of computational resources. This higher cost is expected because the GC must examine every object, which is time-consuming and costly in terms of instructions.
+    \item \textbf{Incremental GC} : Incremental GC divides the GC process into smaller chunks, spreading the work across multiple cycles rather than completing it all at once. The lower percentage (\textbf{14.93\%}) compared to Full GC suggests that while it still incurs some overhead, it is more efficient in its use of instructions, likely because it avoids the large, disruptive pauses associated with Full GC. 
+    \item \textbf{Generational GC} : Generational GC optimizes by focusing on collecting young objects (which are more likely to be short-lived) more frequently while performing full collections less often. It balances the need for frequent small collections with occasional full sweeps, making it a middle-ground in terms of efficiency.
+\end{enumerate}
+
+\section*{\underline{Part 2}}
+\begin{table}[h!]
+    \begin{center}
+        \begin{tabular}{|c|c|c|c|c|}
+            \hline
+            \textbf{n} & \textbf{m} & \textbf{Full GC} & \textbf{Incremental GC} & \textbf{Generational GC} \\
+            \hline
+            100 & \textcolor{red}{100} & 22.59 & 12.47 & 17.07 \\
+            \hline
+            100 & \textcolor{red}{500} & 22.69 & 15.78 & 14.49 \\
+            \hline
+            100 & \textcolor{red}{5000} & 22.71 & 17.83 & 15.05 \\
+            \hline
+        \end{tabular}
+        \caption{Percentage(\%) of instructions consumed by different GC configurations for different \textcolor{blue}{m} values}
+        \label{table:2}
+    \end{center}
+\end{table}
+
+\subsection*{Trend Analysis for Garbage Collectors -}
+\begin{enumerate}
+    \item \textbf{Full GC} performs a complete sweep of all objects in the system, regardless of how much garbage is present. This consistency suggests that Full GC's workload \textbf{scales directly} with the \textbf{size} of the memory space it manages, rather than the amount of garbage which is quite evident with its stop-the-world functionality. 
+    \item \textbf{Incremental GC's} workload grows with the amount of garbage because it spreads the collection process over multiple cycles. As m increases, there is more garbage to collect, leading to \textbf{more incremental steps} and thus more instructions consumed. 
+    \item With more garbage, \textbf{Generational GC} proves to consume the least percentage of instructions among all three GCs. This is because it divides its garbage collection process among young and old generations. By focusing on collecting young objects, which are more likely to be short-lived, Generational GC minimizes the need to \textbf{frequently scan older objects}, which are less likely to be garbage. This division allows it to handle large amounts of garbage more efficiently, as it can quickly reclaim memory from young objects while deferring the more costly collection of older objects. 
+\end{enumerate}
+    
+\section*{\underline{Part 3}}
+\begin{table}[h!]
+    \begin{center}
+        \begin{tabular}{|c|c|c|c|c|}
+            \hline
+            \textbf{GC configuration} & \textbf{Branch Misses} & \textbf{Page Faults} & \textbf{Cache Misses} & \textbf{Instructions Per Cycle} \\
+            \hline
+            None & 2,21,619 & \textbf{16,254} & 16,75,494 & \textbf{2.90} \\
+            \hline
+            Full &  2,66,008 &  \textbf{16,254} &  16,91,255 &  2.76 \\
+            \hline
+            Incremental & 2,96,571 & 11,034 & \textbf{36,67,683} & 2.03 \\
+            \hline
+            Generational & \textbf{3,69,099} & 9,926 & 26,40,932 & 2.27 \\
+            \hline
+        \end{tabular}
+        \caption{Metric analysis using Perf for different GC configurations}
+        \text{Here, \textcolor{blue}{n} = \textcolor{red}{100} and \textcolor{blue}{m} = \textcolor{red}{1000}}
+        \label{table:3}
+    \end{center}
+\end{table}
+
+\subsection*{Perf Analysis for different metric -}
+\begin{enumerate}
+    \item \textbf{Branch Miss}: Branch misses occur when the CPU's branch predictor fails to correctly predict the outcome of a conditional statement, leading to pipeline stalls and performance degradation. The likelihood of branch misses is influenced by the complexity and unpredictability of the control flow within the GC algorithm. Hence, it is a \textbf{relevant} metric for GC configuration analysis.
+    \vspace{1mm}
+    \newline
+    The number of branch misses is highest for the \textbf{Generational GC} configuration. This indicates that Generational GC introduces the most complex and unpredictable control flow, leading to a higher rate of branch prediction failures by the CPU.
+    \vspace{1mm}
+    \newline 
+    On the other hand, \textbf{No GC} configuration has the least number of branch misses, indicating a simpler and more predictable control flow.
+
+    \item \textbf{Page Faults}: Page faults occur when a process attempts to access a memory page that is not currently in physical memory. This results in a context switch to the operating system, which then loads the required page from disk into memory. Page faults are a significant source of performance overhead, as disk access is orders of magnitude slower than memory access. A good GC with low page fault rate showcases a fast and efficient memory management system. Hence, it is a \textbf{relevant} metric for GC configuration analysis.
+    \vspace{1mm}
+    \newline
+    The number of page faults is lowest for the \textbf{Generational GC} configuration. This showcases that it is more efficient in terms of memory access, likely due to its focus on young objects that are frequently accessed, reducing the need to access memory pages that aren't already in RAM.
+    \item \textbf{Cache Misses}: Cache misses occur when the CPU attempts to access data that is not present in the cache, necessitating a slower access from the main memory. This results in performance overhead because retrieving data from the main memory is significantly slower than accessing data from the CPU cache. A GC configuration that leads to fewer cache misses demonstrates that the GC operations and memory accesses are more predictable and localized, allowing the CPU cache to be more effectively utilized. Hence, it is a \textbf{relevant} metric for GC configuration analysis.
+    \vspace{1mm}
+    \newline
+    The number of cache misses is highest for the \textbf{Incremental GC} configuration. This is likely due to its interleaving with program execution and smaller, more frequent memory operations that disrupt the CPU cache.
+    \item \textbf{Instructions per Cycle}: Instructions per Cycle (IPC) measures the average number of instructions a CPU executes per clock cycle. It provides insight into how efficiently the CPU is utilizing its processing resources. A higher IPC indicates that the CPU is effectively executing more instructions in each cycle, leading to better overall performance. GC configuration with a higher IPC values indicate that it is optimized to minimize pipeline stalls and disruptions, leading to better overall CPU performance and efficiency. Hence, it is a \textbf{relevant} metric for GC configuration analysis.
+    \vspace{1mm}
+    \newline
+    The number of instructions per cycle is highest for \textbf{No GC} configuration. This is expected as it doesn't introduce any extra interference with the CPU's pipeline.
+\end{enumerate}
+
+
+\end{document}

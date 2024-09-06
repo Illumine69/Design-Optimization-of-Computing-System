@@ -1,0 +1,17 @@
+# started on Wed Aug 28 18:22:26 2024
+
+
+ Performance counter stats for './incrementalgc':
+
+           296,571      branch-misses                                               
+            11,034      page-faults                                                 
+         3,667,683      cache-misses                                                
+     1,276,435,486      instructions              #    2.03  insn per cycle         
+       627,804,286      cycles                                                      
+
+       0.189708194 seconds time elapsed
+
+       0.164579000 seconds user
+       0.024084000 seconds sys
+
+

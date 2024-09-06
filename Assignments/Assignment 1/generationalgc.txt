@@ -1,0 +1,17 @@
+# started on Wed Aug 28 18:22:31 2024
+
+
+ Performance counter stats for './generationalgc':
+
+           369,099      branch-misses                                               
+             9,926      page-faults                                                 
+         2,640,932      cache-misses                                                
+     1,225,114,889      instructions              #    2.27  insn per cycle         
+       539,600,132      cycles                                                      
+
+       0.130010640 seconds time elapsed
+
+       0.121733000 seconds user
+       0.008115000 seconds sys
+
+
