@@ -1,0 +1,86 @@
+			+--------------------+
+			|        DOCS        |
+			|   ASSGN 2: PINTOS  |
+			|   DESIGN DOCUMENT  |
+			+--------------------+
+				   
+---- NAME ----
+
+Sanskar Mittal <sanskarmittal2002@gmail.com>
+
+---- PRELIMINARIES ----
+
+>> If you have any preliminary comments on your submission, notes for the
+>> TAs, or extra credit, please give them here.
+
+>> Ans. Any changes made in the timer.c file is between the /*Assignment code starts*/ and /*Assignment code ends*/ comments.
+>> This files have been renamed as 
+
+			     ALARM CLOCK
+			     ===========
+
+---- DATA STRUCTURES ----
+
+>> static struct list sleep_list;	// List to hold the sleeping threads
+>> struct sleep_thread;		// Structure to hold the thread and the time it should wake up
+
+---- ALGORITHMS ----
+
+>> A2: Briefly describe what happens in a call to timer_sleep(),
+>> including the effects of the timer interrupt handler.
+>> Ans. In a call to timer_sleep(), the thread is added to the sleep_list with the time it should wake up. This sleep_list maintains the threads with respect to their wakeup time. The thread is then blocked. The timer interrupt handler checks the sleep_list and wakes up the threads that have slept for the required time. 
+
+>> A3: What steps are taken to minimize the amount of time spent in
+>> the timer interrupt handler?
+>> Ans. The timer interrupt handler only wakes up the threads that have slept for the required time and removes them from the sleep_list. It does not perform any other major operations.
+
+---- SYNCHRONIZATION ----
+
+>> A4: How are race conditions avoided when multiple threads call
+>> timer_sleep() simultaneously?
+>> Ans. Interrrupts are disabled before accessing the critical section of the sleep_list. This ensures that only one thread can access the sleep_list at a time.
+
+>> A5: How are race conditions avoided when a timer interrupt occurs
+>> during a call to timer_sleep()?
+>> Ans. Again, the interrrupts are disabled in timer_sleep()'s critical section. Hence, timer_interrupt() cannot update the sleep_list while timer_sleep() is accessing it. 
+
+---- RATIONALE ----
+
+>> A6: Why did you choose this design?  In what ways is it superior to
+>> another design you considered?
+>> Ans. This design was chosen to maintain the simplicity of OS working. Since Pintos works on uniprocessor systems, interrupt disables have been used wherever necessary while keeping the code small. I initially considered using semaphores to implement the alarm clock but that made the code more complex. Also, semaphores implemented in Pintos use interrupt disabling which is what I eventually did.
+
+			     WAKEUP THREAD
+			     =============
+
+---- DATA STRUCTURES ----
+
+>> static struct thread *wakeup_thread;		// Thread to wake up the sleeping threads
+>> static struct list sleep_list;		// List to hold the sleeping threads
+>> struct sleep_thread;			// Structure to hold the thread and the time it should wake up
+
+---- ALGORITHMS ----
+
+>> A2: Briefly describe what happens in a call to timer_sleep(),
+>> including the effects of the timer interrupt handler.
+>> Ans. In a call to timer_sleep(), the thread is added to the sleep_list with the time it should wake up. The thread is then blocked. The timer interrupt handler checks the sleep_list and calls the wakeup thread to wake up the threads that have slept for the required time.
+
+>> A3: What steps are taken to minimize the amount of time spent in
+>> the timer interrupt handler?
+>> Ans. The timer interrupt handler only calls the wakeup thread to wake up the threads that have slept for the required time. The wakeup thread then wakes up sleeping threads and removes them from the sleep_list. There is some busy waiting for wakeup thread to complete its operation but it is minimal as wakeup thread only wakes up required sleeping threads and does not perform any other operations.
+
+---- SYNCHRONIZATION ----
+
+>> A4: How are race conditions avoided when multiple threads call
+>> timer_sleep() simultaneously?
+>> Ans. Interrrupts are disabled before accessing the critical section of the sleep_list. This ensures that only one thread can access the sleep_list at a time.
+
+>> A5: How are race conditions avoided when a timer interrupt occurs
+>> during a call to timer_sleep()?
+>> Ans. Again, the interrrupts are disabled in timer_sleep's critical section. Hence, timer_interrupt cannot update the sleep_list while timer_sleep is accessing it.
+
+---- RATIONALE ----
+
+>> A6: Why did you choose this design?  In what ways is it superior to
+>> another design you considered?
+>> Ans. In continuation to previous reasonings, timer_interrupt() now also waits for wakeup thread to complete. I tried removing this but then wakeup thread was being called multiple times. This waiting is short term and have minor impact.
